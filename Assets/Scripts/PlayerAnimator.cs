@@ -11,12 +11,12 @@ public class PlayerAnimator : MonoBehaviour
 
     private void Awake()
     {
-        _animator = GetComponent<Animator>();
-        _animator.SetBool(IS_WALKING, _player.IsWalking());
+        this._animator = this.GetComponent<Animator>();
+        this._animator.SetBool(IS_WALKING, this._player.IsWalking());
     }
 
     private void Update()
     {
-        _animator.SetBool(IS_WALKING, _player.IsWalking());
+        this._animator.SetBool(IS_WALKING, this._player.IsWalking());
     }
 }
