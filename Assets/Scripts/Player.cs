@@ -13,7 +13,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 
     public class OnSelectedCounterChangedEventArgs : EventArgs
     {
-        public ClearCounter selectedCounter;
+        public BaseCounter selectedCounter;
     }
 
     [SerializeField] private float moveSpeed = 5f;
@@ -23,7 +23,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 
     private bool _isWalking;
     private Vector3 _lastDirection = Vector3.zero;
-    private ClearCounter _selectedCounter;
+    private BaseCounter _selectedCounter;
 
     private readonly float _playerRadius = .7f;
     private readonly float _playerHeight = 2f;
@@ -38,6 +38,15 @@ public class Player : MonoBehaviour, IKitchenObjectParent
     private void Start()
     {
         this.gameInput.OnInteractAction += this.GameInputOnOnInteractAction;
+        this.gameInput.OnInteractAlternateAction += this.GameInputOnOnInteractAlternateAction;
+    }
+
+    private void GameInputOnOnInteractAlternateAction(object sender, EventArgs e)
+    {
+        if (this._selectedCounter != null)
+        {
+            this._selectedCounter.InteractAlternate(this);
+        }
     }
 
     private void GameInputOnOnInteractAction(object sender, EventArgs e)
@@ -73,11 +82,11 @@ public class Player : MonoBehaviour, IKitchenObjectParent
                 out RaycastHit raycastHit, this._interactDistance, this.counterLayerMask
             ))
         {
-            if (raycastHit.transform.TryGetComponent(out ClearCounter clearCounter))
+            if (raycastHit.transform.TryGetComponent(out BaseCounter baseCounter))
             {
-                if (this._selectedCounter != clearCounter)
+                if (this._selectedCounter != baseCounter)
                 {
-                    this.SetSelectedCounter(clearCounter);
+                    this.SetSelectedCounter(baseCounter);
                 }
             }
             else
@@ -91,7 +100,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         }
     }
 
-    private void SetSelectedCounter(ClearCounter counter)
+    private void SetSelectedCounter(BaseCounter counter)
     {
         this._selectedCounter = counter;
         this.OnSelectedCounterChanged?.Invoke(this, new OnSelectedCounterChangedEventArgs()
@@ -113,7 +122,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
         if (!canMove)
         {
             Vector3 moveDirX = new Vector3(direction.x, 0, 0);
-            canMove = !Physics.CapsuleCast(this.transform.position,
+            canMove = direction.x != 0 && !Physics.CapsuleCast(this.transform.position,
                 this.transform.position + Vector3.up * this._playerHeight, this._playerRadius,
                 moveDirX,
                 moveDistance
@@ -126,7 +135,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
             else
             {
                 Vector3 moveDirZ = new Vector3(0, 0, direction.z);
-                canMove = !Physics.CapsuleCast(this.transform.position,
+                canMove = direction.z != 0 && !Physics.CapsuleCast(this.transform.position,
                     this.transform.position + Vector3.up * this._playerHeight, this._playerRadius,
                     moveDirZ,
                     moveDistance
