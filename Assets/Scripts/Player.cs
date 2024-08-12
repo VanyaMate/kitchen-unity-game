@@ -1,9 +1,13 @@
 using System;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour, IKitchenObjectParent
 {
     public static Player Instance { get; private set; }
+
+    [SerializeField] private Transform _kitchenObjectHoldPoint;
+
+    private KitchenObject _kitchenObject;
 
     public event EventHandler<OnSelectedCounterChangedEventArgs> OnSelectedCounterChanged;
 
@@ -40,7 +44,7 @@ public class Player : MonoBehaviour
     {
         if (this._selectedCounter != null)
         {
-            this._selectedCounter.Interact();
+            this._selectedCounter.Interact(this);
         }
     }
 
@@ -100,7 +104,8 @@ public class Player : MonoBehaviour
     {
         float moveDistance = this.moveSpeed * Time.deltaTime;
 
-        bool canMove = !Physics.CapsuleCast(this.transform.position, this.transform.position + Vector3.up * this._playerHeight, this._playerRadius,
+        bool canMove = !Physics.CapsuleCast(this.transform.position,
+            this.transform.position + Vector3.up * this._playerHeight, this._playerRadius,
             direction,
             moveDistance
         );
@@ -108,7 +113,8 @@ public class Player : MonoBehaviour
         if (!canMove)
         {
             Vector3 moveDirX = new Vector3(direction.x, 0, 0);
-            canMove = !Physics.CapsuleCast(this.transform.position, this.transform.position + Vector3.up * this._playerHeight, this._playerRadius,
+            canMove = !Physics.CapsuleCast(this.transform.position,
+                this.transform.position + Vector3.up * this._playerHeight, this._playerRadius,
                 moveDirX,
                 moveDistance
             );
@@ -120,7 +126,8 @@ public class Player : MonoBehaviour
             else
             {
                 Vector3 moveDirZ = new Vector3(0, 0, direction.z);
-                canMove = !Physics.CapsuleCast(this.transform.position, this.transform.position + Vector3.up * this._playerHeight, this._playerRadius,
+                canMove = !Physics.CapsuleCast(this.transform.position,
+                    this.transform.position + Vector3.up * this._playerHeight, this._playerRadius,
                     moveDirZ,
                     moveDistance
                 );
@@ -139,5 +146,30 @@ public class Player : MonoBehaviour
 
         this._isWalking = direction != Vector3.zero;
         this.transform.forward = Vector3.Slerp(this.transform.forward, direction, Time.deltaTime * this.rotateSpeed);
+    }
+
+    public Transform GetKitchenObjectFollowTransform()
+    {
+        return this._kitchenObjectHoldPoint;
+    }
+
+    public void SetKitchenObject(KitchenObject kitchenObject)
+    {
+        this._kitchenObject = kitchenObject;
+    }
+
+    public KitchenObject GetKitchenObject()
+    {
+        return this._kitchenObject;
+    }
+
+    public void ClearKitchenObject()
+    {
+        this._kitchenObject = null;
+    }
+
+    public bool HasKitchenObject()
+    {
+        return this._kitchenObject != null;
     }
 }
